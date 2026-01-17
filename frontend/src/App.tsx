@@ -12,9 +12,11 @@ import PilgrimEditPage from './pages/PilgrimEditPage';
 import PaymentsPage from './pages/PaymentsPage';
 import PaymentCreatePage from './pages/PaymentCreatePage';
 import PaymentDetailPage from './pages/PaymentDetailPage';
+import PaymentEditPage from './pages/PaymentEditPage';
 import ExpensesPage from './pages/ExpensesPage';
 import ExpenseCreatePage from './pages/ExpenseCreatePage';
 import ExpenseDetailPage from './pages/ExpenseDetailPage';
+import ExpenseEditPage from './pages/ExpenseEditPage';
 import TreasuryPage from './pages/TreasuryPage';
 import UsersPage from './pages/UsersPage';
 import CreateUserPage from './pages/CreateUserPage';
@@ -138,6 +140,17 @@ function App() {
         />
 
         <Route
+          path="/payments/:id/edit"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <PaymentEditPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/expenses"
           element={
             <ProtectedRoute>
@@ -165,6 +178,17 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <ExpenseDetailPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/expenses/:id/edit"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ExpenseEditPage />
               </Layout>
             </ProtectedRoute>
           }
