@@ -8,12 +8,14 @@ export interface User {
   last_name: string;
   phone?: string;
   avatar?: string;
+  role?: string;
   role_type: 'admin' | 'custom';
   custom_role?: number;
   custom_role_details?: Role;
   role_name: string;
   permissions: Permissions;
   is_active: boolean;
+  last_login?: string;
   created_at: string;
   updated_at: string;
 }
