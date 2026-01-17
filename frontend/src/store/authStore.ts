@@ -59,13 +59,18 @@ export const useAuthStore = create<AuthState>()(
           const tokenParts = access.split('.');
           const payload = JSON.parse(atob(tokenParts[1]));
           
-          const userData = {
+          const userData: Partial<User> = {
             id: payload.user_id,
             username: payload.username,
-            email: payload.email,
+            email: payload.email || '',
+            first_name: payload.first_name || '',
+            last_name: payload.last_name || '',
             role_type: payload.role_type,
             role_name: payload.role_name,
             permissions: payload.permissions,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           };
 
           // Configurer le token dans axios
