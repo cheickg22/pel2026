@@ -8,6 +8,7 @@ from django.core.files.storage import default_storage
 from payments.models import Payment, AgencySettings, Receipt
 from payments.serializers import AgencySettingsSerializer, ReceiptSerializer
 from pilgrims.models import Pilgrim
+from treasury.models import Treasury
 from datetime import datetime
 import os
 
@@ -153,6 +154,27 @@ class PaymentViewSet(viewsets.ViewSet):
         
         payment.save()
         
+        # Mettre à jour la transaction de trésorerie si le montant a changé
+        if old_amount != payment.amount:
+            try:
+                treasury = Treasury.objects.get(
+                    reference_id=str(payment.id),
+                    reference_type='payment'
+                )
+                treasury.amount = payment.amount
+                treasury.description = f"Paiement de {new_pilgrim.first_name} {new_pilgrim.last_name} - {payment.description or 'Paiement pèlerinage'}"
+                treasury.save()
+            except Treasury.DoesNotExist:
+                # Si la transaction n'existe pas, la créer
+                from treasury.models import TransactionType
+                Treasury.objects.create(
+                    transaction_type=TransactionType.INCOME.value,
+                    amount=payment.amount,
+                    description=f"Paiement de {new_pilgrim.first_name} {new_pilgrim.last_name} - {payment.description or 'Paiement pèlerinage'}",
+                    reference_id=str(payment.id),
+                    reference_type='payment'
+                )
+        
         # Recalculer les totaux de l'ancien pèlerin
         if old_pilgrim_id != payment.pilgrim_id:
             try:
@@ -211,9 +233,20 @@ class PaymentViewSet(viewsets.ViewSet):
             )
         
         pilgrim_id = payment.pilgrim_id
+        payment_id = str(payment.id)
         
         # Supprimer le paiement
         payment.delete()
+        
+        # Supprimer la transaction de trésorerie associée
+        try:
+            treasury = Treasury.objects.get(
+                reference_id=payment_id,
+                reference_type='payment'
+            )
+            treasury.delete()
+        except Treasury.DoesNotExist:
+            pass
         
         # Recalculer les totaux du pèlerin
         try:
