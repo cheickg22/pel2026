@@ -13,9 +13,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from pilgrims.models import Pilgrim
-from payments.models import Payment
+from payments.models import Payment, AgencySettings
 from expenses.models import Expense
-from receipts.models import AgencySettings
 
 def serialize_document(doc):
     """Convertir un document MongoEngine en dict sérialisable"""
