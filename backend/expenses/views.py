@@ -55,6 +55,69 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except Expense.DoesNotExist:
             return Response({"detail": "Expense not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    def update(self, request, *args, **kwargs):
+        """Modifier une dépense (admin uniquement)"""
+        try:
+            expense = Expense.objects.get(id=kwargs['pk'])
+        except Expense.DoesNotExist:
+            return Response({"detail": "Dépense non trouvée"}, status=status.HTTP_404_NOT_FOUND)
+        
+        old_amount = expense.amount
+        
+        serializer = self.get_serializer(expense, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        
+        # Mettre à jour la dépense
+        for key, value in serializer.validated_data.items():
+            setattr(expense, key, value)
+        expense.save()
+        
+        # Mettre à jour la transaction de trésorerie si le montant a changé
+        if old_amount != expense.amount:
+            try:
+                treasury = Treasury.objects.get(
+                    reference_id=str(expense.id),
+                    reference_type='expense'
+                )
+                treasury.amount = expense.amount
+                treasury.description = expense.description
+                treasury.save()
+            except Treasury.DoesNotExist:
+                # Créer une nouvelle transaction si elle n'existe pas
+                Treasury.objects.create(
+                    transaction_type=TransactionType.EXPENSE.value,
+                    amount=expense.amount,
+                    description=expense.description,
+                    reference_id=str(expense.id),
+                    reference_type='expense'
+                )
+        
+        return Response(serializer.data)
+    
+    def destroy(self, request, *args, **kwargs):
+        """Supprimer une dépense (admin uniquement)"""
+        try:
+            expense = Expense.objects.get(id=kwargs['pk'])
+        except Expense.DoesNotExist:
+            return Response({"detail": "Dépense non trouvée"}, status=status.HTTP_404_NOT_FOUND)
+        
+        expense_id = str(expense.id)
+        
+        # Supprimer la dépense
+        expense.delete()
+        
+        # Supprimer la transaction de trésorerie associée
+        try:
+            treasury = Treasury.objects.get(
+                reference_id=expense_id,
+                reference_type='expense'
+            )
+            treasury.delete()
+        except Treasury.DoesNotExist:
+            pass
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'])
     def statistics(self, request):

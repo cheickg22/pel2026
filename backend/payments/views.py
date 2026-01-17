@@ -104,12 +104,138 @@ class PaymentViewSet(viewsets.ViewSet):
                 'payment_date': payment.payment_date,
                 'description': payment.description,
                 'reference_number': payment.reference_number,
+                'created_at': payment.created_at,
+                'updated_at': payment.updated_at,
             })
         except Payment.DoesNotExist:
             return Response(
                 {"detail": "Paiement non trouvé"},
                 status=status.HTTP_404_NOT_FOUND
             )
+    
+    def update(self, request, pk=None):
+        """Modifier un paiement (admin uniquement)"""
+        try:
+            payment = Payment.objects.get(id=pk)
+        except Payment.DoesNotExist:
+            return Response(
+                {"detail": "Paiement non trouvé"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        data = request.data
+        old_pilgrim_id = payment.pilgrim_id
+        old_amount = payment.amount
+        
+        # Vérifier si le pèlerin a changé et qu'il existe
+        new_pilgrim_id = data.get('pilgrim_id', payment.pilgrim_id)
+        try:
+            new_pilgrim = Pilgrim.objects.get(id=new_pilgrim_id)
+        except Pilgrim.DoesNotExist:
+            return Response(
+                {"detail": "Pèlerin non trouvé"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Mettre à jour les champs
+        if 'amount' in data:
+            payment.amount = float(data['amount'])
+        if 'payment_mode' in data:
+            payment.payment_mode = data['payment_mode']
+        if 'payment_date' in data:
+            payment.payment_date = datetime.fromisoformat(data['payment_date'].replace('Z', '+00:00'))
+        if 'description' in data:
+            payment.description = data['description']
+        if 'reference_number' in data:
+            payment.reference_number = data['reference_number']
+        if 'pilgrim_id' in data:
+            payment.pilgrim_id = str(new_pilgrim_id)
+        
+        payment.save()
+        
+        # Recalculer les totaux de l'ancien pèlerin
+        if old_pilgrim_id != payment.pilgrim_id:
+            try:
+                old_pilgrim = Pilgrim.objects.get(id=old_pilgrim_id)
+                old_payments = Payment.objects.filter(pilgrim_id=str(old_pilgrim.id))
+                old_total_paid = sum([p.amount for p in old_payments])
+                old_pilgrim.total_paid = old_total_paid
+                old_pilgrim.remaining_amount = old_pilgrim.total_cost - old_total_paid
+                
+                if old_total_paid == 0:
+                    old_pilgrim.payment_status = 'pending'
+                elif old_total_paid >= old_pilgrim.total_cost:
+                    old_pilgrim.payment_status = 'completed'
+                else:
+                    old_pilgrim.payment_status = 'partial'
+                
+                old_pilgrim.save()
+            except:
+                pass
+        
+        # Recalculer les totaux du nouveau pèlerin
+        new_payments = Payment.objects.filter(pilgrim_id=str(new_pilgrim.id))
+        new_total_paid = sum([p.amount for p in new_payments])
+        new_pilgrim.total_paid = new_total_paid
+        new_pilgrim.remaining_amount = new_pilgrim.total_cost - new_total_paid
+        
+        if new_total_paid == 0:
+            new_pilgrim.payment_status = 'pending'
+        elif new_total_paid >= new_pilgrim.total_cost:
+            new_pilgrim.payment_status = 'completed'
+        else:
+            new_pilgrim.payment_status = 'partial'
+        
+        new_pilgrim.save()
+        
+        return Response({
+            'id': str(payment.id),
+            'pilgrim_id': payment.pilgrim_id,
+            'amount': payment.amount,
+            'payment_mode': payment.payment_mode,
+            'payment_date': payment.payment_date,
+            'description': payment.description,
+            'reference_number': payment.reference_number,
+            'created_at': payment.created_at,
+            'updated_at': payment.updated_at,
+        })
+    
+    def destroy(self, request, pk=None):
+        """Supprimer un paiement (admin uniquement)"""
+        try:
+            payment = Payment.objects.get(id=pk)
+        except Payment.DoesNotExist:
+            return Response(
+                {"detail": "Paiement non trouvé"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        pilgrim_id = payment.pilgrim_id
+        
+        # Supprimer le paiement
+        payment.delete()
+        
+        # Recalculer les totaux du pèlerin
+        try:
+            pilgrim = Pilgrim.objects.get(id=pilgrim_id)
+            payments = Payment.objects.filter(pilgrim_id=str(pilgrim.id))
+            total_paid = sum([p.amount for p in payments])
+            
+            pilgrim.total_paid = total_paid
+            pilgrim.remaining_amount = pilgrim.total_cost - total_paid
+            
+            if total_paid == 0:
+                pilgrim.payment_status = 'pending'
+            elif total_paid >= pilgrim.total_cost:
+                pilgrim.payment_status = 'completed'
+            else:
+                pilgrim.payment_status = 'partial'
+            
+            pilgrim.save()
+        except:
+            pass
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
     @action(detail=False, methods=['get'])
     def statistics(self, request):

@@ -25,7 +25,9 @@ export const paymentsAPI = {
     api.post('/payments/payments/', data),
   
   update: (id: string, data: Partial<Payment>) =>
-    api.patch(`/payments/payments/${id}/`, data),
+    api.put(`/payments/payments/${id}/`, data),
+  
+  delete: (id: string) => api.delete(`/payments/payments/${id}/`),
   
   statistics: () => api.get('/payments/payments/statistics/'),
   
