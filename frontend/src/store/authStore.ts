@@ -53,7 +53,7 @@ export const useAuthStore = create<AuthState>()(
             password,
           });
 
-          const { access, refresh } = response.data;
+          const { access } = response.data;
           
           // Décoder le JWT pour extraire les données utilisateur
           const tokenParts = access.split('.');

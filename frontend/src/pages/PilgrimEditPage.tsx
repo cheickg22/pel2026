@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { pilgrimsAPI } from '../api/pilgrims';
-import type { Pilgrim } from '../api/pilgrims';
 
 export default function PilgrimEditPage() {
   const { id } = useParams<{ id: string }>();

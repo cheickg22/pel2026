@@ -8,7 +8,7 @@ export interface Payment {
   payment_mode: string;
   reference_number?: string;
   description?: string;
-  is_validated: boolean;
+  is_validated?: boolean;
   validated_by?: string;
   validated_at?: string;
   created_at: string;

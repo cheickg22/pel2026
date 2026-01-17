@@ -10,8 +10,9 @@ export interface Expense {
   pilgrim_ids: string[];
   created_by: string;
   validated_by?: string;
-  is_validated: boolean;
+  is_validated?: boolean;
   validated_at?: string;
+  notes?: string;
   created_at: string;
   updated_at: string;
 }

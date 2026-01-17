@@ -6,9 +6,10 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
-  role: string;
+  role?: string;
   is_active: boolean;
   created_at: string;
+  last_login?: string;
 }
 
 export interface AuthResponse {
