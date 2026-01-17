@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { pilgrimsAPI } from '../api/pilgrims';
+import { BASE_URL } from '../api/client';
 
 export default function PilgrimEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -193,7 +194,7 @@ export default function PilgrimEditPage() {
                   Fichier actuel: {currentPassport.split('/').pop()}
                 </p>
                 <a 
-                  href={`http://localhost:8000/media/${currentPassport}`} 
+                  href={`${BASE_URL}/media/${currentPassport}`} 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-blue-600 hover:underline ml-6"

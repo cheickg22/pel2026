@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { pilgrimsAPI } from '../api/pilgrims';
 import type { Pilgrim } from '../api/pilgrims';
+import { BASE_URL } from '../api/client';
 
 export default function PilgrimDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -105,7 +106,7 @@ export default function PilgrimDetailPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Fichier Passeport</label>
                 <a 
-                  href={`http://localhost:8000/media/${pilgrim.passport_file}`} 
+                  href={`${BASE_URL}/media/${pilgrim.passport_file}`} 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"

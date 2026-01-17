@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAgencySettings, updateAgencySettings, AgencySettings } from '../api/receipts';
+import { BASE_URL } from '../api/client';
 
 const AgencySettingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -223,7 +224,7 @@ const AgencySettingsPage: React.FC = () => {
               {settings?.logo && (
                 <div className="mb-3">
                   <img
-                    src={`http://localhost:8000/media/${settings.logo}`}
+                    src={`${BASE_URL}/media/${settings.logo}`}
                     alt="Logo actuel"
                     className="h-24 w-24 object-contain border border-gray-300 rounded-lg p-2"
                   />
@@ -254,7 +255,7 @@ const AgencySettingsPage: React.FC = () => {
               {settings?.signature && (
                 <div className="mb-3">
                   <img
-                    src={`http://localhost:8000/media/${settings.signature}`}
+                    src={`${BASE_URL}/media/${settings.signature}`}
                     alt="Signature actuelle"
                     className="h-16 w-auto object-contain border border-gray-300 rounded-lg p-2"
                   />

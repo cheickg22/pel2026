@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useAgencyStore } from '../store/agencyStore';
+import { BASE_URL } from '../api/client';
 
 interface LayoutProps {
   children: ReactNode;
@@ -34,7 +35,7 @@ export default function Layout({ children }: LayoutProps) {
   const primaryColor = agencySettings?.primary_color || '#4f46e5';
   const agencyName = agencySettings?.name || 'Pèlerinage';
   const agencyTagline = agencySettings?.tagline || 'Gestion Hadj & Omra';
-  const logoUrl = agencySettings?.logo ? `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/media/${agencySettings.logo}` : null;
+  const logoUrl = agencySettings?.logo ? `${BASE_URL}/media/${agencySettings.logo}` : null;
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
