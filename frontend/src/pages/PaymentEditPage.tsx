@@ -11,7 +11,7 @@ export default function PaymentEditPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
-  const [pilgrims, setPilgrims] = useState<Pilgrim[]>([]);
+  const [pilgrim, setPilgrim] = useState<Pilgrim | null>(null);
   const [formData, setFormData] = useState({
     pilgrim_id: '',
     amount: 0,
@@ -23,7 +23,6 @@ export default function PaymentEditPage() {
 
   useEffect(() => {
     fetchPayment();
-    fetchPilgrims();
   }, [id]);
 
   const fetchPayment = async () => {
@@ -38,19 +37,19 @@ export default function PaymentEditPage() {
         description: payment.description || '',
         reference_number: payment.reference_number || '',
       });
+      
+      // Récupérer les infos du pèlerin
+      try {
+        const pilgrimResponse = await pilgrimsAPI.get(payment.pilgrim_id);
+        setPilgrim(pilgrimResponse.data);
+      } catch (err) {
+        console.error('Erreur lors du chargement du pèlerin:', err);
+      }
+      
       setIsLoading(false);
     } catch (err) {
       setError('Erreur lors du chargement du paiement');
       setIsLoading(false);
-    }
-  };
-
-  const fetchPilgrims = async () => {
-    try {
-      const response = await pilgrimsAPI.list();
-      setPilgrims(response.data.results || response.data);
-    } catch (err) {
-      console.error('Erreur lors du chargement des pèlerins:', err);
     }
   };
 
@@ -114,21 +113,12 @@ export default function PaymentEditPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Pèlerin *
+              Pèlerin
             </label>
-            <select
-              value={formData.pilgrim_id}
-              onChange={(e) => setFormData({ ...formData, pilgrim_id: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              required
-            >
-              <option value="">Sélectionner un pèlerin</option>
-              {pilgrims.map((pilgrim) => (
-                <option key={pilgrim.id} value={pilgrim.id}>
-                  {pilgrim.first_name} {pilgrim.last_name}
-                </option>
-              ))}
-            </select>
+            <div className="w-full px-4 py-2 border border-gray-300 bg-gray-50 rounded-lg text-gray-700">
+              {pilgrim ? `${pilgrim.first_name} ${pilgrim.last_name}` : 'Chargement...'}
+            </div>
+            <p className="mt-1 text-sm text-gray-500">Le pèlerin ne peut pas être modifié</p>
           </div>
 
           <div>
