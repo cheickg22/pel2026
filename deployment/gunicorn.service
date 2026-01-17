@@ -1,0 +1,16 @@
+[Unit]
+Description=Gunicorn daemon for Pilgrimage Django App
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/confort.abdatytch.com/backend
+Environment="PATH=/var/www/confort.abdatytch.com/backend/venv/bin"
+ExecStart=/var/www/confort.abdatytch.com/backend/venv/bin/gunicorn \
+          --workers 3 \
+          --bind unix:/var/www/confort.abdatytch.com/backend/gunicorn.sock \
+          config.wsgi:application
+
+[Install]
+WantedBy=multi-user.target

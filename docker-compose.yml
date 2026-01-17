@@ -1,0 +1,55 @@
+version: '3.9'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: pel_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    volumes:
+      - mongo_data:/data/db
+
+  django:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pel_django
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=your-secret-key-here
+      - MONGO_HOST=mongodb://admin:admin@mongodb:27017/
+      - MONGO_DB_NAME=pilgrimage_app
+      - ALLOWED_HOSTS=localhost,127.0.0.1,django
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend:/app
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pel_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+
+volumes:
+  mongo_data:
